@@ -1,0 +1,16 @@
+[
+  {
+    "id": "gpt-image-2.6-flare",
+    "label": "GPT Image 2.6 Flare",
+    "badge": "快速 · 推荐",
+    "description": "响应快（约 12–18 秒）、性价比高，适合日常表情包与高频试错",
+    "default": true
+  },
+  {
+    "id": "gpt-image-2.6-sunburst",
+    "label": "GPT Image 2.6 Sunburst",
+    "badge": "高精",
+    "description": "细节、角色还原与复杂构图更稳，适合精细成品与参考图精修",
+    "default": false
+  }
+]

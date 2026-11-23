@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GIF Studio · 极简 AI 动图表情包工作台</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="page">
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">G</div>
+          <div class="brand-copy">
+            <span class="brand-name">GIF Studio</span>
+            <span class="brand-sub">GPT Image 2.6</span>
+          </div>
+        </div>
+
+        <div class="topbar-controls">
+          <div class="model-select-wrap" title="选择图像模型">
+            <span class="status-dot" id="apiStatusDot"></span>
+            <select id="modelSelect" class="model-select" aria-label="选择模型"></select>
+          </div>
+
+          <div class="segmented" role="tablist" aria-label="参数模式">
+            <button type="button" class="seg-btn active" id="modeAutoBtn" data-mode="auto" role="tab" aria-selected="true">Auto 极简</button>
+            <button type="button" class="seg-btn" id="modeCustomBtn" data-mode="custom" role="tab" aria-selected="false">高级自定义</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="main">
+      <div id="apiAlert" class="alert hidden" role="alert"></div>
+
+      <section class="workspace">
+        <!-- Left Composer -->
+        <div class="composer-col">
+          <div class="hero">
+            <h1>上传一张图，一句话做成动图</h1>
+            <p>已配置好模型与无缝循环 GIF 提示词模板。小白选个场景直接生成，进阶可切右上角「高级自定义」。</p>
+          </div>
+
+          <div class="card composer-card">
+            <div class="section-label">选择预制 GIF 场景</div>
+            <div class="preset-pills" id="presetPills"></div>
+
+            <!-- Reference Image Upload -->
+            <div class="upload-zone" id="uploadZone" tabindex="0" role="button" aria-label="上传参考图">
+              <input type="file" id="refFileInput" accept="image/png,image/jpeg,image/webp" hidden />
+              <div class="upload-empty" id="uploadEmpty">
+                <div class="upload-icon" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="3" />
+                    <circle cx="9" cy="9" r="1.5" />
+                    <path d="m21 15-4.5-4.5L7 20" />
+                  </svg>
+                </div>
+                <div class="upload-copy">
+                  <strong>上传参考图（可选 · 支持拖拽或直接粘贴）</strong>
+                  <span>PNG / JPG / WebP · 传图后自动切换为「锁定角色形象」的图生 GIF 模式</span>
+                </div>
+              </div>
+              <div class="upload-preview hidden" id="uploadPreview">
+                <img id="refThumbImg" alt="参考图预览" />
+                <div class="upload-preview-meta">
+                  <strong id="refFileName">reference.png</strong>
+                  <span id="refFileSize">图生 GIF 模式 · 已锁定参考角色</span>
+                </div>
+                <button type="button" class="ghost-btn" id="clearRefBtn">移除</button>
+              </div>
+            </div>
+
+            <!-- User Prompt -->
+            <div class="prompt-wrap">
+              <textarea
+                id="promptInput"
+                class="prompt-input"
+                rows="3"
+                placeholder="输入想做的动作或表情包梗，例如：周一不想上班，抱头叹气趴到桌上"
+              ></textarea>
+              <div class="inspirations" id="inspirationsRow"></div>
+            </div>
+
+            <!-- Auto Mode Preset Inspector -->
+            <div class="preset-bar" id="autoPresetBar">
+              <div class="preset-bar-top">
+                <div class="preset-bar-info">
+                  <span class="preset-badge">预制词已生效</span>
+                  <span id="autoPresetSummary">微信表情包 · 9 帧 · 180ms</span>
+                </div>
+                <button type="button" class="link-btn" id="togglePreviewPromptBtn">查看预制词</button>
+              </div>
+              <div class="preset-preview-drawer hidden" id="presetPreviewDrawer">
+                <div class="drawer-meta">
+                  <span id="presetSourceNote"></span>
+                  <span id="presetVariantBadge" class="subtle-tag">文生 GIF 模板</span>
+                </div>
+                <pre id="assembledPromptPreview"></pre>
+              </div>
+            </div>
+
+            <!-- Advanced Custom Panel -->
+            <div class="advanced-panel hidden" id="advancedPanel">
+              <div class="adv-header">
+                <span class="adv-title">高级自定义参数</span>
+                <button type="button" class="link-btn" id="resetAdvBtn">恢复当前场景默认</button>
+              </div>
+
+              <div class="adv-grid">
+                <div class="field">
+                  <label for="frameCountInput">帧数 <strong id="frameCountVal">9 帧</strong></label>
+                  <input type="range" id="frameCountInput" min="2" max="16" step="1" value="9" />
+                </div>
+                <div class="field">
+                  <label for="frameDurationInput">单帧时长 <strong id="frameDurationVal">180 ms</strong></label>
+                  <input type="range" id="frameDurationInput" min="60" max="500" step="20" value="180" />
+                </div>
+                <div class="field">
+                  <label for="backgroundSelect">背景</label>
+                  <select id="backgroundSelect">
+                    <option value="transparent">透明底（贴纸首选）</option>
+                    <option value="opaque">纯白/不透明底（微信表情包）</option>
+                    <option value="auto">自动（由模型决定）</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="qualitySelect">画质</label>
+                  <select id="qualitySelect">
+                    <option value="low">Low（最快最省）</option>
+                    <option value="medium">Medium（均衡推荐）</option>
+                    <option value="high">High（精细）</option>
+                    <option value="xhigh">XHigh（超高）</option>
+                    <option value="max">Max（最高）</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="complexitySelect">规划复杂度</label>
+                  <select id="complexitySelect">
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High（默认，动作更稳）</option>
+                  </select>
+                </div>
+                <div class="field field-switch">
+                  <label for="usePresetToggle">启用预制 GIF 提示词</label>
+                  <label class="toggle-row">
+                    <input type="checkbox" id="usePresetToggle" checked />
+                    <span id="usePresetLabel">开启（自动包裹无缝循环模板）</span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="template-editor" id="templateEditorWrap">
+                <div class="template-editor-head">
+                  <label for="customTemplateInput">预制 GIF 提示词模板（使用 <code>{{prompt}}</code> 插入上方输入）</label>
+                  <button type="button" class="link-btn" id="resetTemplateBtn">重置模板</button>
+                </div>
+                <textarea id="customTemplateInput" class="template-textarea" rows="5"></textarea>
+              </div>
+            </div>
+
+            <div class="composer-footer">
+              <div class="footer-hint" id="footerHint">按 ⌘/Ctrl + Enter 快速生成</div>
+              <button type="button" class="primary-btn" id="generateBtn">
+                <span class="spinner hidden" id="btnSpinner"></span>
+                <span id="btnText">生成 GIF</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Preview -->
+        <div class="preview-col">
+          <div class="card preview-card">
+            <div class="preview-head">
+              <span class="preview-title">成品预览</span>
+              <span class="preview-meta" id="previewMeta">等待生成</span>
+            </div>
+
+            <div class="stage" id="previewStage">
+              <div class="stage-empty" id="stageEmpty">
+                <div class="empty-crab" aria-hidden="true">
+                  <svg width="72" height="72" viewBox="0 0 16 16" shape-rendering="crispEdges">
+                    <rect x="4" y="5" width="8" height="5" fill="#D97757" opacity="0.88" />
+                    <rect x="5" y="4" width="6" height="1" fill="#E69578" />
+                    <rect x="2" y="4" width="2" height="3" fill="#D97757" opacity="0.88" />
+                    <rect x="12" y="4" width="2" height="3" fill="#D97757" opacity="0.88" />
+                    <rect x="6" y="6" width="1" height="2" fill="#22201D" />
+                    <rect x="9" y="6" width="1" height="2" fill="#22201D" />
+                    <rect x="4" y="10" width="1" height="2" fill="#B85C3E" />
+                    <rect x="6" y="10" width="1" height="2" fill="#B85C3E" />
+                    <rect x="9" y="10" width="1" height="2" fill="#B85C3E" />
+                    <rect x="11" y="10" width="1" height="2" fill="#B85C3E" />
+                  </svg>
+                </div>
+                <p class="empty-title">生成的动图会在这里循环播放</p>
+                <p class="empty-sub">支持透明底棋盘格预览，一键下载即可发微信 / 聊天</p>
+              </div>
+
+              <div class="stage-loading hidden" id="stageLoading">
+                <div class="pulse-ring"></div>
+                <p class="loading-title">正在调用 GPT Image 2.6 绘制逐帧动画…</p>
+                <p class="loading-timer" id="loadingTimer">已耗时 0.0 秒（通常 12–25 秒）</p>
+              </div>
+
+              <img id="resultGif" class="result-gif hidden" alt="生成的 GIF 动图" />
+            </div>
+
+            <div class="preview-actions hidden" id="previewActions">
+              <a id="downloadBtn" class="action-btn action-primary" download>下载 GIF</a>
+              <button type="button" class="action-btn" id="inspectResultPromptBtn">查看实际提示词</button>
+              <button type="button" class="action-btn" id="reusePromptBtn">复用主题</button>
+            </div>
+
+            <div class="result-prompt-box hidden" id="resultPromptBox">
+              <div class="result-prompt-head">
+                <span>本次发送给模型的完整提示词</span>
+                <button type="button" class="link-btn" id="closeResultPromptBtn">收起</button>
+              </div>
+              <pre id="resultPromptText"></pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- History Gallery -->
+      <section class="gallery-section" id="gallerySection">
+        <div class="gallery-head">
+          <h2>最近作品</h2>
+          <span class="gallery-count" id="galleryCount">0 个动图</span>
+        </div>
+        <div class="gallery-grid" id="galleryGrid"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/app.js" type="module"></script>
+</body>
+</html>
