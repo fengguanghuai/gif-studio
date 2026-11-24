@@ -4,12 +4,10 @@
 
 面向普通用户的极简 AI GIF 表情包工作台，基于 OpenAI **GPT Image 2.6** 原生 GIF 生成与编辑能力构建。零构建步骤、仅 2 个依赖，30 秒即可本地启动。
 
-<p>
-  <img alt="Node.js >= 22" src="https://img.shields.io/badge/Node.js-%3E%3D22-339933?style=flat-square&logo=node.js&logoColor=white" />
-  <img alt="Hono" src="https://img.shields.io/badge/Hono-4.x-E36002?style=flat-square" />
-  <img alt="GPT Image 2.6" src="https://img.shields.io/badge/OpenAI-GPT%20Image%202.6-10A37F?style=flat-square" />
-  <img alt="Zero Build" src="https://img.shields.io/badge/Build-Zero%20Build-D97757?style=flat-square" />
-</p>
+![Node.js 22+](https://img.shields.io/badge/Node.js-22%2B-339933?style=flat-square&logo=node.js&logoColor=white)
+![Hono 4.x](https://img.shields.io/badge/Hono-4.x-E36002?style=flat-square)
+![GPT Image 2.6](https://img.shields.io/badge/OpenAI-GPT%20Image%202.6-10A37F?style=flat-square)
+![Zero Build](https://img.shields.io/badge/Build-Zero%20Build-D97757?style=flat-square)
 
 ![GIF Studio Auto 极简模式主界面](docs/assets/ui-auto.png)
 
